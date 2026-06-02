@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+.env.*
+
+# Runtime data
+data/
+logs/
+*.db
+
+# Model weights
+models/*.pt
+models/*.onnx
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
