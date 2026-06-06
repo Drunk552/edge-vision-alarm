@@ -3,6 +3,8 @@
 __pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
+.ruff_cache/
 
 # Environment
 .env
@@ -11,11 +13,33 @@ __pycache__/
 # Runtime data
 data/
 logs/
+linux/data/*
+!linux/data/.gitkeep
+!linux/data/images/
+linux/data/images/*
+!linux/data/images/.gitkeep
+!linux/data/images/raw/
+!linux/data/images/raw/.gitkeep
+!linux/data/images/result/
+!linux/data/images/result/.gitkeep
+linux/logs/*
+!linux/logs/.gitkeep
 *.db
 
 # Model weights
 models/*.pt
 models/*.onnx
+linux/models/*.pt
+linux/models/*.onnx
+
+# ESP-IDF
+build/
+esp32/build/
+managed_components/
+esp32/managed_components/
+dependencies.lock
+sdkconfig
+sdkconfig.old
 
 # IDE
 .vscode/
@@ -24,3 +48,9 @@ models/*.onnx
 # OS
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
