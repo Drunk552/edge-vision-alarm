@@ -1,0 +1,193 @@
+menu "Edge Vision Alarm Configuration"
+
+    config EDGE_WIFI_SSID
+        string "Wi-Fi SSID"
+        default ""
+        help
+            ESP32-S3-CAM 需要连接的 Wi-Fi 名称。
+            真实 SSID 建议只保存在本地 sdkconfig 中，不提交到 Git。
+
+    config EDGE_WIFI_PASSWORD
+        string "Wi-Fi Password"
+        default ""
+        help
+            ESP32-S3-CAM 需要连接的 Wi-Fi 密码。
+            真实密码建议只保存在本地 sdkconfig 中，不提交到 Git。
+
+    config EDGE_WIFI_MAXIMUM_RETRY
+        int "Wi-Fi maximum retry count"
+        default 5
+        range 1 20
+        help
+            单轮 Wi-Fi 连接失败后的最大重试次数。
+
+    config EDGE_DEVICE_ID
+        string "Device ID"
+        default "esp32_s3_cam_001"
+        help
+            ESP32-S3-CAM 设备唯一编号，上传和心跳接口使用同一个 device_id。
+
+    config EDGE_SERVER_URL
+        string "Linux server URL"
+        default ""
+        help
+            Linux 服务端地址，例如 http://192.168.137.1:8000。
+            真实地址建议只保存在本地 sdkconfig 中。
+
+    config EDGE_HEARTBEAT_INTERVAL_MS
+        int "Heartbeat interval milliseconds"
+        default 10000
+        range 1000 600000
+        help
+            ESP32 心跳上报周期，开发文档建议默认 10 秒左右。
+
+    config EDGE_HTTP_TIMEOUT_MS
+        int "HTTP timeout milliseconds"
+        default 5000
+        range 1000 30000
+        help
+            ESP32 HTTP 请求超时时间。
+
+    config EDGE_API_TOKEN
+        string "API token"
+        default ""
+        help
+            可选接口访问令牌。如服务端启用鉴权，通过 X-API-Token 请求头发送。
+            Token 不应提交到公开仓库。
+
+    config EDGE_CAMERA_XCLK_PIN
+        int "Camera XCLK GPIO"
+        default 15
+        help
+            摄像头 XCLK 引脚，需按实际 ESP32-S3-CAM 开发板原理图配置。
+
+    config EDGE_CAMERA_SIOD_PIN
+        int "Camera SIOD/SDA GPIO"
+        default 4
+        help
+            摄像头 SCCB 数据引脚，需按实际开发板原理图配置。
+
+    config EDGE_CAMERA_SIOC_PIN
+        int "Camera SIOC/SCL GPIO"
+        default 5
+        help
+            摄像头 SCCB 时钟引脚，需按实际开发板原理图配置。
+
+    config EDGE_CAMERA_D0_PIN
+        int "Camera D0 GPIO"
+        default 11
+
+    config EDGE_CAMERA_D1_PIN
+        int "Camera D1 GPIO"
+        default 9
+
+    config EDGE_CAMERA_D2_PIN
+        int "Camera D2 GPIO"
+        default 8
+
+    config EDGE_CAMERA_D3_PIN
+        int "Camera D3 GPIO"
+        default 10
+
+    config EDGE_CAMERA_D4_PIN
+        int "Camera D4 GPIO"
+        default 12
+
+    config EDGE_CAMERA_D5_PIN
+        int "Camera D5 GPIO"
+        default 18
+
+    config EDGE_CAMERA_D6_PIN
+        int "Camera D6 GPIO"
+        default 17
+
+    config EDGE_CAMERA_D7_PIN
+        int "Camera D7 GPIO"
+        default 16
+
+    config EDGE_CAMERA_VSYNC_PIN
+        int "Camera VSYNC GPIO"
+        default 6
+
+    config EDGE_CAMERA_HREF_PIN
+        int "Camera HREF GPIO"
+        default 7
+
+    config EDGE_CAMERA_PCLK_PIN
+        int "Camera PCLK GPIO"
+        default 13
+
+    config EDGE_CAMERA_PWDN_PIN
+        int "Camera PWDN GPIO"
+        default -1
+        help
+            没有连接 PWDN 时设置为 -1。
+
+    config EDGE_CAMERA_RESET_PIN
+        int "Camera RESET GPIO"
+        default -1
+        help
+            没有连接 RESET 时设置为 -1。
+
+    choice EDGE_CAMERA_FRAME_SIZE
+        prompt "Camera frame size"
+        default EDGE_CAMERA_FRAME_SIZE_VGA
+        help
+            阶段九默认使用 VGA。如内存不足，可切换到 QVGA。
+
+        config EDGE_CAMERA_FRAME_SIZE_QVGA
+            bool "QVGA 320x240"
+
+        config EDGE_CAMERA_FRAME_SIZE_VGA
+            bool "VGA 640x480"
+    endchoice
+
+    config EDGE_CAMERA_JPEG_QUALITY
+        int "Camera JPEG quality"
+        default 12
+        range 10 63
+        help
+            JPEG 压缩质量，数值越小质量越高，内存和传输压力越大。
+
+    config EDGE_CAMERA_CAPTURE_INTERVAL_MS
+        int "Camera capture interval milliseconds"
+        default 3000
+        range 1000 600000
+        help
+            阶段九单帧拍照测试周期。
+
+    config EDGE_UPLOAD_INTERVAL_MS
+        int "Image upload interval milliseconds"
+        default 15000
+        range 3000 600000
+        help
+            阶段十图片上传周期，上传前会检查 Wi-Fi 是否已连接。
+
+    config EDGE_ALARM_LED_GPIO
+        int "Alarm LED GPIO"
+        default 38
+        help
+            阶段十一使用板载 LED 告警，默认按 ESP32-S3-WROOM-1 常见开发板 GPIO38 配置。
+
+    config EDGE_ALARM_LED_ACTIVE_LEVEL
+        int "Alarm LED active level"
+        default 1
+        range 0 1
+        help
+            LED 有效电平。1 表示高电平点亮，0 表示低电平点亮。
+
+    config EDGE_ALARM_DURATION_MS
+        int "Alarm duration milliseconds"
+        default 3000
+        range 500 60000
+        help
+            单次 LED 告警持续时间。
+
+    config EDGE_ALARM_BLINK_INTERVAL_MS
+        int "Alarm LED blink interval milliseconds"
+        default 300
+        range 50 5000
+        help
+            LED 告警闪烁间隔。
+
+endmenu
