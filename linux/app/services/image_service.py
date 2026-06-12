@@ -7,7 +7,7 @@ from fastapi import UploadFile
 
 from app.core.config import settings
 from app.core.error_codes import IMAGE_FORMAT_ERROR, IMAGE_TOO_LARGE
-from app.utils.time_utils import compact_timestamp
+from app.utils.time_utils import compact_timestamp, date_path
 
 
 class ImageValidationError(ValueError):
@@ -44,9 +44,9 @@ class ImageService:
         if len(content) > max_size:
             raise ImageValidationError(IMAGE_TOO_LARGE, "image size exceeds limit")
 
-        raw_dir = settings.image_save_dir / "raw"
+        raw_dir = settings.image_save_dir / "raw" / date_path() / device_id
         raw_dir.mkdir(parents=True, exist_ok=True)
-        filename = f"{compact_timestamp()}_{device_id}.jpg"
+        filename = f"{compact_timestamp()}.jpg"
         file_path = raw_dir / filename
         file_path.write_bytes(content)
         return file_path
@@ -66,25 +66,29 @@ class ImageService:
         if image is None:
             return None
 
+        self._draw_danger_zone(cv2, image)
+
         for target in targets:
             box = target.get("box") or []
             if len(box) != 4:
                 continue
             x1, y1, x2, y2 = box
-            label = f"{target['class']} {target['confidence']:.2f}"
-            cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            color = self._target_color(target)
+            suffix = " danger_zone" if target.get("in_danger_zone") else ""
+            label = f"{target['class']} {target['confidence']:.2f}{suffix}"
+            cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
             cv2.putText(
                 image,
                 label,
                 (x1, max(y1 - 8, 16)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
-                (0, 0, 255),
+                color,
                 1,
                 cv2.LINE_AA,
             )
 
-        result_dir = settings.image_save_dir / "result"
+        result_dir = self._result_dir_for_raw(raw_path)
         result_dir.mkdir(parents=True, exist_ok=True)
         result_path = result_dir / f"{raw_path.stem}_result.jpg"
         if not cv2.imwrite(str(result_path), image):
@@ -107,3 +111,43 @@ class ImageService:
         if content_type not in {"image/jpeg", "image/jpg", "application/octet-stream"}:
             return False
         return content.startswith(b"\xff\xd8") and content.endswith(b"\xff\xd9")
+
+    def _draw_danger_zone(self, cv2, image) -> None:
+        if not settings.danger_zone_enabled or len(settings.danger_zone_roi) < 3:
+            return
+
+        height, width = image.shape[:2]
+        points = [
+            [int(x * width), int(y * height)] for x, y in settings.danger_zone_roi
+        ]
+        try:
+            import numpy as np
+        except ImportError:
+            return
+
+        polygon = np.array(points, dtype=np.int32)
+        cv2.polylines(image, [polygon], isClosed=True, color=(0, 165, 255), thickness=2)
+        cv2.putText(
+            image,
+            "danger zone",
+            tuple(polygon[0]),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (0, 165, 255),
+            2,
+            cv2.LINE_AA,
+        )
+
+    def _target_color(self, target: dict) -> tuple[int, int, int]:
+        if target.get("in_danger_zone"):
+            return (0, 0, 255)
+        return (0, 180, 0)
+
+    def _result_dir_for_raw(self, raw_path: Path) -> Path:
+        raw_root = settings.image_save_dir / "raw"
+        result_root = settings.image_save_dir / "result"
+        try:
+            relative_parent = raw_path.parent.relative_to(raw_root)
+        except ValueError:
+            return result_root
+        return result_root / relative_parent

@@ -54,3 +54,6 @@ Thumbs.db
 *.log
 *.tmp
 *.bak
+
+# Documents
+docx/

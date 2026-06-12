@@ -51,12 +51,12 @@ class DetectionService:
         decision = self.alarm_rule_engine.evaluate(device_id, targets)
         result_path = self.image_service.save_result_image(raw_path, targets)
         top_target = self._top_target(targets)
-        self.device_repository.upsert_status(
+        self.device_repository.record_upload(
             device_id=device_id,
-            status="online",
             updated_at=created_at,
             rssi=rssi,
             free_heap=free_heap,
+            alarm=decision["alarm_status"] == "alarm",
         )
         event_id = self.alarm_repository.create_event(
             device_id=device_id,
@@ -83,6 +83,8 @@ class DetectionService:
             "alarm": decision["alarm"],
             "alarm_level": decision["alarm_level"],
             "alarm_action": decision["alarm_action"],
+            "alarm_status": decision["alarm_status"],
+            "event_type": decision["event_type"],
             "targets": targets,
             "event_id": event_id,
         }

@@ -1,8 +1,9 @@
 """数据查询接口。"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.error_codes import PARAM_ERROR, SUCCESS
+from app.core.security import verify_api_token
 from app.repositories.alarm_repository import AlarmRepository
 from app.repositories.device_repository import DeviceRepository
 from app.utils.time_utils import now_iso
@@ -40,7 +41,9 @@ def get_latest(device_id: str | None = None) -> dict:
         "device_id": event["device_id"],
         "alarm": event["alarm_status"] == "alarm",
         "alarm_level": event["alarm_level"],
+        "alarm_status": event["alarm_status"],
         "alarm_action": "none",
+        "event_type": event["event_type"],
         "target_count": 0 if event["target_class"] == "none" else 1,
         "top_target": None if event["target_class"] == "none" else top_target,
         "result_image_path": event["result_image_path"],
@@ -109,7 +112,7 @@ def list_devices(
 
 
 @router.post("/alarms/{event_id}/handle")
-def handle_alarm(event_id: int) -> dict:
+def handle_alarm(event_id: int, _: None = Depends(verify_api_token)) -> dict:
     """将告警事件标记为已处理。"""
 
     if event_id < 1:

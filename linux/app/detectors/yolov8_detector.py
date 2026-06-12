@@ -43,6 +43,7 @@ class Yolov8Detector:
         targets: list[dict] = []
         for result in results:
             names = result.names
+            image_height, image_width = result.orig_shape
             for box in result.boxes:
                 xyxy = box.xyxy[0].tolist()
                 class_id = int(box.cls[0].item())
@@ -51,6 +52,8 @@ class Yolov8Detector:
                         "class": names[class_id],
                         "confidence": float(box.conf[0].item()),
                         "box": [int(value) for value in xyxy],
+                        "image_width": int(image_width),
+                        "image_height": int(image_height),
                     }
                 )
         return targets

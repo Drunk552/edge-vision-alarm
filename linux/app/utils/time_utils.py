@@ -13,3 +13,9 @@ def compact_timestamp() -> str:
     """生成适合文件名使用的时间戳。"""
 
     return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
+
+
+def date_path() -> str:
+    """生成图片归档目录使用的 UTC 日期。"""
+
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")

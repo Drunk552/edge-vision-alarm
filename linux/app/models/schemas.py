@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class HeartbeatRequest(BaseModel):
     """设备心跳请求。"""
 
-    device_id: str = Field(min_length=1)
+    device_id: str = Field(min_length=1, max_length=64)
     rssi: int | None = None
     free_heap: int | None = None
     status: str = "online"

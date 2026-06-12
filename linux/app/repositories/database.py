@@ -44,7 +44,11 @@ def init_db(db_path: Path | None = None) -> None:
                 free_heap INTEGER,
                 status TEXT,
                 last_seen TEXT,
-                updated_at TEXT NOT NULL
+                updated_at TEXT NOT NULL,
+                last_heartbeat_at TEXT,
+                last_upload_at TEXT,
+                upload_count INTEGER DEFAULT 0,
+                alarm_count INTEGER DEFAULT 0
             );
 
             CREATE TABLE IF NOT EXISTS detection_targets (
@@ -60,3 +64,20 @@ def init_db(db_path: Path | None = None) -> None:
             );
             """
         )
+        _ensure_device_status_columns(connection)
+
+
+def _ensure_device_status_columns(connection: sqlite3.Connection) -> None:
+    """为已有数据库补齐设备状态扩展字段。"""
+
+    rows = connection.execute("PRAGMA table_info(device_status)").fetchall()
+    existing_columns = {row["name"] for row in rows}
+    migrations = {
+        "last_heartbeat_at": "ALTER TABLE device_status ADD COLUMN last_heartbeat_at TEXT",
+        "last_upload_at": "ALTER TABLE device_status ADD COLUMN last_upload_at TEXT",
+        "upload_count": "ALTER TABLE device_status ADD COLUMN upload_count INTEGER DEFAULT 0",
+        "alarm_count": "ALTER TABLE device_status ADD COLUMN alarm_count INTEGER DEFAULT 0",
+    }
+    for column, sql in migrations.items():
+        if column not in existing_columns:
+            connection.execute(sql)
